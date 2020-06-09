@@ -27,7 +27,7 @@ def read_postmaster_pid(work_directory, dbname):
     return pid
 
 
-def build_connection(host, port, user, database):
+def build_connection(host, port, user, database, password):
     result = {}
     if host:
         result['host'] = host
@@ -37,25 +37,27 @@ def build_connection(host, port, user, database):
         result['user'] = user
     if database:
         result['database'] = database
+    if password:
+        result['password'] = password
     return result
 
 
-def pick_connection_arguments(conn_args, username, dbname):
+def pick_connection_arguments(conn_args, username, dbname, password):
     """ go through all decected connections, picking the first one that actually works """
     result = {}
     for conn_type in 'unix', 'tcp', 'tcp6':
         if len(result) > 0:
             break
         for arg in conn_args.get(conn_type, []):
-            if can_connect_with_connection_arguments(*arg, username=username, dbname=dbname):
+            if can_connect_with_connection_arguments(*arg, username=username, dbname=dbname, password=password):
                 (result['host'], result['port']) = arg
                 break
     return result
 
 
-def can_connect_with_connection_arguments(host, port, username, dbname):
+def can_connect_with_connection_arguments(host, port, username, dbname, password):
     """ check that we can connect given the specified arguments """
-    conn = build_connection(host, port, username, dbname)
+    conn = build_connection(host, port, username, dbname, password)
     try:
         test_conn = psycopg2.connect(**conn)
         test_conn.close()

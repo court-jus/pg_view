@@ -68,6 +68,8 @@ def parse_args():
                       action='append', type=int, default=[])
     parser.add_option('-U', '--username', help='database user name',
                       action='store', dest='username')
+    parser.add_option('-W', '--password', help='database password',
+                      action='store', dest='password')
     parser.add_option('-d', '--dbname', help='database name to connect to',
                       action='store', dest='dbname')
     parser.add_option('-h', '--host', help='database connection host '
@@ -200,14 +202,14 @@ def main():
             host = config[instance].get('host')
             port = config[instance].get('port')
             conn = build_connection(host, port,
-                                    config[instance].get('user'), config[instance].get('dbname'))
+                                    config[instance].get('user'), config[instance].get('dbname'), config[instance].get('password'))
 
             if not establish_user_defined_connection(instance, conn, clusters):
                 logger.error('failed to acquire details about ' +
                              'the database cluster {0}, the server will be skipped'.format(instance))
     elif options.host:
         # connect to the database using the connection string supplied from command-line
-        conn = build_connection(options.host, options.port, options.username, options.dbname)
+        conn = build_connection(options.host, options.port, options.username, options.dbname, options.password)
         instance = options.instance or "default"
         if not establish_user_defined_connection(instance, conn, clusters):
             logger.error("unable to continue with cluster {0}".format(instance))
@@ -235,7 +237,7 @@ def main():
                     continue
                 host = conndata['host']
                 port = conndata['port']
-                conn = build_connection(host, port, options.username, options.dbname)
+                conn = build_connection(host, port, options.username, options.dbname, options.password)
                 pgcon = psycopg2.connect(**conn)
             except Exception as e:
                 logger.error('PostgreSQL exception {0}'.format(e))
